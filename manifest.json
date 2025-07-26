@@ -1,23 +1,21 @@
 {
-  "name": "tanker-ledger",
-  "short_name": "tanker-ledger",
-  "start_url": ".",
+  "name": "Tanker Ledger",
+  "short_name": "Tanker Ledger",
+  "start_url": "https://arifuzzaman75.github.io/tanker-ledger/",
   "display": "standalone",
   "background_color": "#1a202c",
   "theme_color": "#1a202c",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "./icon-192x192.png",
+      "src": "https://arifuzzaman75.github.io/tanker-ledger/icon-192x192.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "./icon-512x512.png",
+      "src": "https://arifuzzaman75.github.io/tanker-ledger/icon-512x512.png",
       "type": "image/png",
       "sizes": "512x512"
     }
-  ],
-  "description": "tanker letger is a ship carrying oil calculator",
-  "id": "tankerletger"
+  ]
 }
