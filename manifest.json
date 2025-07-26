@@ -8,12 +8,12 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "https://arifuzzaman75.github.io/tanker-ledger/icon-192x192.png",
+      "src": "https://arifuzzaman75.github.io/tanker-ledger/512×512-maskabl.png",
       "type": "image/png",
       "sizes": "192x192"
     },
     {
-      "src": "https://arifuzzaman75.github.io/tanker-ledger/icon-512x512.png",
+      "src": "https://arifuzzaman75.github.io/tanker-ledger/512x512-monochrome.png",
       "type": "image/png",
       "sizes": "512x512"
     }
