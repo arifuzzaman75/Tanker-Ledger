@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="utf-8"/>
+    <title>Tanker Ledger</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no"/>
+    <meta name="theme-color" content="#1a202c"/>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icon-512x512.png">
+    <style>
+        :root {
+            --bg-dark: #1a202c;
+            --bg-medium: #2d3748;
+            --bg-light: #4a5568;
+            --text-light: #edf2f7;
+            --text-medium: #e2e8f0;
+            --text-dark: #a0aec0;
+            --accent-blue: #3182ce;
+            --accent-red: #e53e3e;
+            --accent-green: #38a169;
+            --accent-green-light: #9ae6b4;
+            --radius: 12px;
+            --pad: 16px;
+        }
+        *{ box-sizing: border-box; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            -webkit-tap-highlight-color: transparent;
+        }
+        .app-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .app-header {
+            text-align: center;
+            padding: 20px 0;
+        }
+        .app-header img {
+            width: 80px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .app-header h1 {
+            color: var(--text-light);
+            margin: 0;
+            font-size: 24px;
+        }
+        .tab-bar {
+            display: flex;
+            background-color: var(--bg-medium);
+            border-radius: var(--radius);
+            margin: 0 var(--pad) var(--pad);
+            overflow: hidden;
+            position: sticky;
+            top: 10px;
+            z-index: 10;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 12px 5px;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            background: none;
+            border: none;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background-color: var(--accent-blue);
+            color: var(--text-light);
+        }
+        .section {
+            background-color: var(--bg-medium);
+            padding: var(--pad);
+            margin: 0 var(--pad) var(--pad);
+            border-radius: var(--radius);
+        }
+        h2 {
+            margin: 0 0 16px;
+            color: var(--text-light);
+            font-size: 20px;
+            text-align: center;
+        }
+        .form-row, .main-tank-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            background-color: var(--bg-dark);
+            padding: 10px;
+            border-radius: var(--radius);
+        }
+        label, .label {
+            font-size: 14px;
+            color: var(--text-medium);
+            flex-basis: 50%;
+        }
+        input[type=number], input[type=text], select {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--bg-light);
+            color: var(--text-light);
+            text-align: right;
+            font-weight: bold;
+        }
+        select { text-align: left; }
+        .input-group { flex-basis: 50%; }
+        .tank-dip-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            padding: 8px;
+            border-radius: var(--radius);
+            background-color: var(--bg-dark);
+        }
+        .tank-dip-row .label { flex-basis: auto; }
+        .tank-dip-row input { text-align: center; }
+        .small-vol { font-size: 14px; text-align: right; color: var(--text-light); font-weight: bold;}
+        .total-display {
+            text-align: center;
+            padding: 12px;
+            border-radius: var(--radius);
+            background-color: var(--bg-dark);
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 16px;
+        }
+        .action-button {
+            width: 100%;
+            padding: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: var(--radius);
+            color: var(--text-light);
+            cursor: pointer;
+            margin-top: 16px;
+            background-color: var(--accent-blue);
+        }
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .button-group .btn {
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border: none;
+            border-radius: var(--radius);
+            color: var(--text-light);
+            cursor: pointer;
+        }
+        .btn.blue { background-color: var(--accent-blue); }
+        .btn.red { background-color: var(--accent-red); }
+        .btn.green { background-color: var(--accent-green); }
+        .history-entry {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background-color: var(--bg-dark);
+            border-radius: var(--radius);
+            margin-bottom: 8px;
+        }
+        .history-entry input[type=checkbox] { width: 20px; height: 20px; margin-right: 12px;}
+        .history-entry .entry-details { display: flex; flex-direction: column; flex-grow: 1; cursor: pointer;}
+        .history-entry .entry-name { font-size: 15px; font-weight: bold; }
+        .history-entry .entry-meta { font-size: 12px; color: var(--text-dark); }
+        .main-tank-row.result { background-color: var(--accent-green); color: var(--bg-dark); }
+        .main-tank-row.result .label, .main-tank-row.result .value { color: var(--bg-dark); font-weight: bold; }
+        .final-result-display {
+            text-align: center; padding: 12px; border-radius: var(--radius); font-weight: bold;
+            font-size: 18px;
+        }
+        .final-result-display.plus { background: var(--accent-green); color: var(--bg-dark); }
+        .final-result-display.minus { background: var(--accent-red); color: var(--text-light); }
+        .value { font-size: 16px; font-weight: bold; }
+        .main-tank-title { text-align: center; margin-bottom: 20px; }
+        .main-tank-title h2 { font-size: 24px; margin-bottom: 4px; }
+        .main-tank-title p { color: var(--text-dark); margin: 0; font-weight: bold; }
+        .hidden { display: none !important; }
+        .script-font { font-family: 'Brush Script MT', 'Brush Script Std', cursive; font-size: 28px; color: var(--text-light); }
+    </style>
+</head>
+<body>
+<div class="app-container">
+    <div class="app-header">
+        <img src="./icon-512x512.png" alt="Tanker Ledger Logo">
+        <h1>Tanker Ledger</h1>
+    </div>
+
+    <!-- TAB BAR -->
+    <div class="tab-bar">
+        <button class="tab-btn active" id="tab-load-btn" onclick="showTab('load')">Load</button>
+        <button class="tab-btn" id="tab-unload-btn" onclick="showTab('unload')">Unload</button>
+        <button class="tab-btn" id="tab-history-btn" onclick="showTab('history')">History</button>
+        <button class="tab-btn" id="tab-main-btn" onclick="showTab('main')">Main Tank</button>
+    </div>
+
+    <!-- LOAD TAB -->
+    <div id="tab-load" class="section">
+        <h2>Vessel Load Entry</h2>
+        <div id="loadForm"></div>
+    </div>
+
+    <!-- UNLOAD TAB -->
+    <div id="tab-unload" class="section hidden">
+        <h2>Vessel Unload Entry</h2>
+        <div id="unloadForm"></div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="tab-history" class="section hidden">
+        <h2>History + Compare</h2>
+        <div id="historyList"><p>এখনও কোনো এন্ট্রি সেভ করা হয়নি।</p></div>
+        <div class="button-group">
+            <button class="btn blue" onclick="compareSelected()">Compare Selected</button>
+            <button class="btn red" onclick="deleteSelected()">Delete Selected</button>
+            <button class="btn blue" onclick="toggleShowAllHistory()" id="historyShowToggleBtn">Show All</button>
+            <button class="btn green" onclick="exportHistory()">Export JSON</button>
+            <input type="file" id="importFile" accept="application/json" class="hidden" onchange="importHistoryFile(event)"/>
+            <button class="btn blue" onclick="document.getElementById('importFile').click()">Import</button>
+        </div>
+        <div id="historyComparisonResult" style="margin-top:20px;"></div>
+    </div>
+
+    <!-- MAIN TANK TAB -->
+    <div id="tab-main" class="section hidden">
+        <div class="main-tank-title">
+            <h2 class="script-font">Main Tank</h2>
+            <p>VESSEL UNLOADING TANK</p>
+        </div>
+        
+        <div class="main-tank-row">
+            <label for="litrePerMM">Litre Per MM (mm)</label>
+            <div class="input-group"><input type="number" class="zero" id="litrePerMM" value="0" oninput="calculateMainTank()"></div>
+        </div>
+
+        <h3 style="text-align:center; color: var(--text-dark); margin: 20px 0 10px;">Before DIP</h3>
+        <div class="main-tank-row"><label>Oil+Water DIP(mm)</label><div class="input-group"><input type="number" class="zero" id="before_oil_water_dip" value="0" oninput="calculateMainTank()"></div></div>
+        <div class="main-tank-row"><label>Water DIP(mm)</label><div class="input-group"><input type="number" class="zero" id="before_water_dip" value="0" oninput="calculateMainTank()"></div></div>
+        
+        <h3 style="text-align:center; color: var(--text-dark); margin: 20px 0 10px;">After DIP</h3>
+        <div class="main-tank-row"><label>Oil+Water DIP(mm)</label><div class="input-group"><input type="number" class="zero" id="after_oil_water_dip" value="0" oninput="calculateMainTank()"></div></div>
+        <div class="main-tank-row"><label>Water DIP(mm)</label><div class="input-group"><input type="number" class="zero" id="after_water_dip" value="0" oninput="calculateMainTank()"></div></div>
+        
+        <h3 style="text-align:center; color: var(--text-dark); margin: 20px 0 10px;">Temperature & Density</h3>
+        <div class="main-tank-row"><label>Present Temperature (°C)</label><div class="input-group"><input type="number" class="zero" id="main_pres_temp" value="0" oninput="calculateMainTank()"></div></div>
+        <div class="main-tank-row"><label>Present Densitie</label><div class="input-group"><input type="number" class="zero" id="main_pres_density" step="0.0001" value="0" oninput="calculateMainTank()"></div></div>
+        
+        <div class="main-tank-row result" style="margin-top: 20px;">
+            <div class="label">Received QTY</div><div id="received_qty" class="value">+0.0 L</div>
+        </div>
+        <div class="main-tank-row result">
+            <div class="label">Received QTY@30</div><div id="received_qty_30" class="value">+0.0 L</div>
+        </div>
+        
+        <div class="main-tank-row" style="margin-top:20px;"><label>Supplied QTY@30°C</label><div class="input-group"><input type="number" class="zero" id="supplied_qty_30" value="0" oninput="calculateMainTank()"></div></div>
+        <div class="main-tank-row"><label>P-Liter</label><div class="input-group"><input type="number" class="zero" id="p_litre" value="0" oninput="calculateMainTank()"></div></div>
+        
+        <div class="main-tank-row result">
+            <div class="label">SurPlus</div><div id="surplus_qty" class="value">+0.0 L</div>
+        </div>
+        
+        <div class="main-tank-row" style="margin-top:20px;"><label>Transit(%)</label><div class="input-group"><input type="number" class="zero" id="transit_percent" value="0.18" oninput="calculateMainTank()"></div></div>
+        <div class="main-tank-row"><label>Allowable(only show)</label><div id="allowable_qty" class="value">0</div></div>
+
+        <div class="main-tank-row result">
+            <div class="label">Net SurPlus</div><div id="net_surplus_qty" class="value">+0.0 L</div>
+        </div>
+
+        <div class="main-tank-row" style="margin-top: 20px;">
+            <label for="main_entry_name">Entry Name</label>
+            <div class="input-group"><input type="text" id="main_entry_name" placeholder="Entry name..."></div>
+        </div>
+        <button class="action-button" onclick="saveMainTankEntry()">Save Main Tank Entry</button>
+    </div>
+</div>
+
+
+<script>
+/* ----------------------------
+   ZERO FIELD AUTO CLEAR
+----------------------------- */
+function zeroFieldFocus(e){
+  if(Number(e.target.value) === 0){ e.target.value=""; }
+  e.target.select && e.target.select();
+}
+function zeroFieldBlur(e){
+  if(e.target.value.trim()===""){
+    e.target.value="0"; 
+    e.target.dispatchEvent(new Event('input')); 
+  }
+}
+function attachZeroHandlers(el){
+  el.addEventListener('focus',zeroFieldFocus);
+  el.addEventListener('blur',zeroFieldBlur);
+}
+
+/* ----------------------------------
+   ALPHA DATA & CALIBRATION (Unchanged)
+----------------------------------- */
+const ALPHA_DATA = { HSD: [{range:[0.805,0.815],alpha:0.00089},{range:[0.815,0.823],alpha:0.00087},{range:[0.823,0.837],alpha:0.00085},{range:[0.838,0.854],alpha:0.00083},{range:[0.854,0.872],alpha:0.00081},{range:[0.872,0.890],alpha:0.00079},{range:[0.890,0.908],alpha:0.00071}], SKO: [{range:[0.77,0.78],alpha:0.00101},{range:[0.772,0.774],alpha:0.00099},{range:[0.774,0.778],alpha:0.00097},{range:[0.779,0.787],alpha:0.00095},{range:[0.787,0.795],alpha:0.00093},{range:[0.795,0.805],alpha:0.00091}], PETROL: [{range:[0.678,0.686],alpha:0.00136},{range:[0.687,0.693],alpha:0.00134},{range:[0.693,0.701],alpha:0.0013},{range:[0.701,0.707],alpha:0.00128},{range:[0.707,0.715],alpha:0.00126},{range:[0.715,0.723],alpha:0.00124}], FO: [{range:[0.904,0.9085],alpha:0.00077},{range:[0.9085,0.9175],alpha:0.00076},{range:[0.9175,0.9265],alpha:0.00075},{range:[0.9265,0.9375],alpha:0.00074},{range:[0.9375,0.9485],alpha:0.00073},{range:[0.9485,0.9505],alpha:0.00071},{range:[0.9505,0.9704],alpha:0.0007}]};
+function getAlpha(fuelType, density) { if(!fuelType || !density || density <= 0) return null; const fuelTable = ALPHA_DATA[fuelType.toUpperCase()]; if (!fuelTable) return null; for (const entry of fuelTable) { if (density >= entry.range[0] && density < entry.range[1]) return entry.alpha; } const lastEntry = fuelTable[fuelTable.length - 1]; if (density === lastEntry.range[1]) return lastEntry.alpha; return null; }
+const CALIB_RAW = { p1:`725,975,1243,1517,1791,2065,2338,2612,2886,3160,3434,3708,3981,4255,4529,4803,5156,5509,5862,6215,6568,6921,7274,7627,7980,8333,8686,9039,9392,9745,10054,10363,10672,10981,11289,11598,11907,12216,12525,12834,13143,13452,13761,14069,14378,14687,14996,15305,15614,15923,16232,16540,16849,17158,17467,17776,18111,18447,18782,19117,19453,19788,20124,20459,20794,21130,21465,21800,22136,22471,22806,23142,23477,23813,24148,24483,24819,25154,25489,25825,26160,26495,26831,27166,27501,27837,28172,28508,28843,29178,29514,29849,30204,30559,30914,31269,31623,31978,32333,32688,33043,33398,33753,34108,34463,34817,35172,35527,35882,36237,36592,36947,37302,37657,38011,38366,38721,39076,39431,39786,40141,40496,40851,41205,41560,41915,42270,42625,42980,43335,43690,44045,44399,44754,45109,45464,45819,46174,46529,46884,47239,47594,47948,48303,48658,49013,49368,49723,50078,50433,50788,51142,51497,51852,52207,52562,52917,53272,53627,53982,54336,54691,55046,55401,55756,56111,56466,56821,57176,57530,57885,58240,58595,58950,59305,59660,60015,60370,60724,61079,61434,61789,62144,62499,62854,63209,63564,63918,64273,64628,64983,65338,65693,66048,66403,66758,67112,67467,67822,68177,68532,68887,69242,69597,69952,70306,70661,71016,71371,71726,72081,72436,72791,73146,73500,73855,74210,74565,74920,75275,75630,75985,76340,76694,77049,77404,77759,78114,78469,78824,79179,79534,79888,80243,80598,80953,81308,81663,82018,82373,82728,83083,83437,83792,84147,84502,84857,85212,85567,85922,86277,86631,86986,87341,87696,88051,88406,88761,89116,89471,89825,90180,90535,90890,91245,91600,91955,92310,92665,93019,93374,93729,94084,94439,94794,95149,95504,95859,96213,96568,96923,97278,97633,97962,98291,98620,98949,99278,99607,99936,100265,100594,100923,101252,101581,101910,102239,102568,102897,103226,103555,103884,104203,104522,104841,105160,105479,105798,106117,106436,106755,107074,107393,107712,108031,108350,108669,108988,109307,109626,109945,110182,110420,110657,110894,111132,111369,111606,111844,112081,112318,112556,112793,113030,113268,113505,113742,113980,114217,114455,114692,114929,115167,115404,115641,115879,116116,116353,116591,116828,117065,117303,117540,117774,117924,118073,118222,118372,118521,118670,118819,118969,119118,119267,119417,119566,119715,119864,120014,120163,120312,120462,120611,120760,120910,121059,121208,121357,121507,121656,121805,121955,122104,122253,122402,122552,122701,122850,123000,123149,123298,123448,123597,123746,123895,124045,124194,124343,124493,124642`, s1:`727,908,1102,1306,1510,1714,1918,2169,2420,2671,2922,3264,3605,3947,4288,4630,4972,5313,5655,5996,6338,6680,7021,7363,7704,8046,8388,8729,9071,9412,9754,10085,10416,10747,11078,11410,11741,12072,12403,12734,13065,13396,13727,14058,14390,14721,15052,15383,15714,16045,16376,16707,17039,17370,17701,18032,18363,18694,19025,19356,19687,20019,20350,20681,21012,21343,21674,22005,22336,22667,22999,23330,23661,23992,24323,24654,24985,25316,25648,25979,26310,26641,26972,27303,27634,27965,28296,28628,28959,29290,29621,29952,30305,30658,31011,31364,31717,32070,32423,32776,33130,33483,33836,34189,34542,34895,35248,35601,35954,36307,36660,37013,37366,37719,38072,38425,38778,39131,39485,39838,40191,40544,40897,41250,41603,41956,42309,42662,43015,43368,43721,44074,44427,44780,45133,45487,45840,46193,46546,46899,47252,47605,47958,48311,48664,49017,49370,49723,50076,50429,50782,51135,51488,51842,52195,52548,52901,53254,53607,53960,54313,54666,55019,55372,55725,56078,56431,56784,57137,57490,57844,58197,58550,58903,59256,59609,59962,60315,60668,61021,61374,61727,62080,62433,62786,63139,63492,63846,64199,64552,64905,65258,65611,65964,66317,66670,67023,67376,67729,68082,68435,68788,69141,69494,69847,70201,70554,70907,71260,71613,71966,72319,72672,73025,73378,73731,74084,74437,74790,75143,75496,75849,76203,76556,76909,77262,77615,77968,78321,78674,79027,79380,79733,80086,80439,80792,81145,81498,81851,82204,82558,82911,83264,83617,83970,84323,84676,85029,85382,85735,86088,86441,86794,87147,87500,87853,88206,88560,88913,89266,89619,89972,90325,90678,91031,91384,91737,92090,92443,92796,93149,93502,93855,94208,94561,94915,95268,95621,95974,96327,96680,97033,97386,97739,98056,98373,98689,99006,99323,99640,99957,100273,100590,100907,101224,101540,101857,102174,102491,102808,103124,103441,103758,104085,104413,104740,105067,105395,105722,106049,106377,106704,107031,107359,107686,108013,108341,108668,108995,109323,109650,109889,110128,110367,110606,110845,111084,111323,111562,111800,112039,112278,112517,112756,112995,113234,113473,113712,113951,114190,114429,114668,114907,115146,115385,115624,115862,116101,116340,116579,116818,117057,117296,117535,117774,117923,118073,118222,118371,118520,118670,118819,118968,119118,119267,119416,119566,119715,119864,120013,120163,120312,120461,120611,120760,120909,121058,121208,121357,121506,121656,121805,121954,122104,122253,122402,122551,122701,122850,122999,123149,123298,123447,123596,123746,123895,124044,124194,124343,124492`,p2:`200,450,700,950,1500,2134,2768,3403,4037,4671,5305,5940,6574,7208,7842,8477,9111,9745,10515,11284,12054,12823,13593,14362,15132,15902,16671,17441,18210,18980,19750,20519,21289,22058,22828,23597,24367,25137,25906,26676,27445,28215,28984,29754,30553,31352,32151,32951,33750,34549,35348,36147,36946,37746,38545,39344,40143,40942,41741,42540,43340,44139,44938,45737,46454,47170,47887,48604,49320,50037,50753,51470,52187,52903,53620,54337,55053,55770,56486,57203,57920,58636,59353,60070,60786,61503,62219,62936,63653,64369,65086,65803,66519,67236,67953,68669,69386,70102,70819,71536,72252,72969,73686,74402,75119,75835,76552,77269,77985,78702,79419,80135,80852,81568,82285,83002,83718,84435,85152,85868,86585,87301,88018,88735,89451,90168,90885,91601,92318,93035,93751,94468,95184,95901,96618,97334,98051,98768,99484,100201,100917,101634,102351,103067,103784,104501,105217,105934,106650,107367,108084,108800,109517,110300,111083,111866,112650,113433,114216,114999,115782,116565,117349,118132,118915,119698,120481,121264,122048,122831,123614,124397,125180,125963,126747,127530,128313,129096,129879,130662,131446,132229,133012,133795,134578,135361,136144,136928,137711,138494,139277,140060,140843,141627,142410,143193,143976,144759,145542,146326,147109,147892,148675,149458,150241,151025,151808,152591,153374,154088,154803,155517,156232,156946,157661,158375,159090,159804,160519,161233,161948,162662,163377,164091,164806,165520,166235,166949,167664,168378,169093,169807,170521,171236,171950,172665,173379,174094,174808,175523,176237,176952,177666,178381,179095,179810,180524,181239,181953,182668,183382,184097,184811,185526,186240,186954,187669,188383,189098,189812,190527,191241,191956,192670,193385,194099,194814,195528,196243,196957,197672,198386,199101,199815,200530,201244,201958,202673,203387,204102,204816,205531,206245,206960,207674,208389,209103,209818,210532,211247,211961,212676,213390,214105,214819,215534,216248,216963,217677,218240,218804,219367,219931,220494,221058,221621,222184,222748,223311,223875,224438,225001,225565,226128,226692,227255,227819,228382,228945,229509,230072,230636,231199,231762,232326,232889,233453,234016,234580,235143,235706,236270,236833,237397,237960,238524,239087,239650,240214,240777,241341,241904,242467,243031,243594,244158,244721,245285,245848,246411,246975,247538,248102,248665,249228,249792,250355,250919,251482,252046,252609,253172,253736,254299,254863,255426,255989,256553,257116,257680,258243,258807,259370,259742,260114,260486,260857,261229,261601,261973,262345,262717,263088,263460,263832,264085,264338,264590,264843,265096,265349,265601,265854,266107,266360,266612,266865,267118,267371,267623`,s2:`225,475,725,975,1600,2246,2892,3537,4183,4829,5475,6120,6766,7412,8058,8703,9349,9995,10735,11476,12216,12956,13697,14437,15178,15918,16658,17399,18139,18879,19620,20360,21101,21841,22581,23322,24062,24802,25543,26283,27024,27764,28504,29245,29985,30692,31398,32105,32812,33519,34225,34932,35639,36346,37052,37759,38466,39173,39879,40586,41293,41999,42706,43413,44120,44826,45533,46240,46947,47653,48360,49067,49774,50480,51187,51894,52600,53307,54014,54721,55427,56134,56841,57548,58254,58961,59668,60375,61081,61788,62495,63202,63908,64615,65322,66028,66735,67442,68149,68855,69562,70269,70976,71682,72389,73096,73803,74509,75216,75923,76629,77336,78043,78750,79456,80163,80870,81577,82283,82990,83697,84404,85110,85817,86524,87232,87939,88646,89353,90061,90768,91475,92182,92890,93597,94304,95011,95719,96426,97133,97840,98548,99255,99962,100669,101377,102084,102791,103498,104206,104913,105620,106327,107035,107742,108449,109156,109864,110571,111278,111985,112693,113400,114107,114814,115522,116229,116936,117643,118351,119058,119765,120472,121180,121887,122594,123301,124009,124716,125423,126130,126838,127545,128252,128959,129667,130374,131081,131788,132496,133203,133910,134617,135325,136032,136739,137446,138154,138861,139568,140275,140983,141690,142397,143104,143812,144519,145226,145933,146641,147348,148055,148762,149470,150177,150884,151591,152299,153006,153713,154427,155141,155855,156569,157282,157996,158710,159424,160138,160852,161566,162280,162993,163707,164421,165135,165849,166563,167277,167991,168704,169418,170132,170846,171560,172274,172988,173702,174415,175129,175843,176557,177271,177985,178699,179413,180126,180840,181554,182268,182982,183696,184410,185124,185837,186551,187265,187979,188693,189407,190121,190835,191548,192262,192976,193690,194404,195118,195832,196546,197259,197973,198687,199401,200115,200829,201543,202257,202970,203684,204398,205112,205826,206540,207254,207968,208681,209395,210109,210823,211537,212251,212965,213679,214392,215106,215820,216534,217248,217813,218377,218942,219506,220071,220636,221200,221765,222329,222894,223458,224023,224588,225152,225717,226281,226846,227411,227975,228540,229104,229669,230233,230798,231363,231927,232492,233056,233621,234186,234750,235315,235879,236444,237009,237573,238138,238702,239267,239831,240396,240961,241525,242090,242654,243219,243784,244348,244913,245477,246042,246607,247171,247736,248300,248865,249429,249994,250559,251123,251688,252252,252817,253382,253946,254511,255075,255640,256204,256769,257334,257898,258463,259027,259592,260136,260681,261225,261769,262136,262502,262869,263236,263602,263969,264336,264702,265069,265436,265802,266169`,p3:`1233,1567,1900,2259,2630,3000,3588,4176,4763,5351,5939,6527,7115,7703,8290,8878,9466,10166,10866,11567,12267,12967,13667,14367,15067,15768,16468,17168,17868,18568,19268,19969,20669,21369,22069,22769,23469,24170,24870,25570,26270,26970,27670,28371,29071,29771,30483,31195,31907,32619,33331,34044,34756,35468,36180,36892,37604,38316,39028,39740,40452,41164,41877,42589,43301,44013,44725,45437,46149,46861,47573,48285,48997,49710,50422,51134,51846,52558,53270,53982,54694,55406,56118,56830,57543,58255,58967,59679,60391,61103,61815,62527,63239,63951,64663,65375,66088,67512,68224,68936,69648,70360,71072,71784,72496,73208,73921,74633,75345,76057,76769,77481,78193,78905,79617,80329,81041,81754,82466,83178,83890,84602,85314,86030,86746,87462,88178,88894,89610,90326,91042,91758,92474,93190,93906,94622,95338,96054,96770,97486,98202,98918,99634,100350,101066,101782,102498,103214,103930,104646,105362,106078,106793,107509,108225,108941,109657,110373,111089,111805,112521,113237,113953,114669,115385,116101,116817,117533,118249,118965,119681,120397,121113,121829,122545,123261,123977,124693,125409,126125,126841,127557,128273,128989,129705,130421,131137,131853,132569,133285,134001,134717,135433,136149,136865,137581,138297,139013,139729,140445,141161,141877,142593,143309,144025,144741,145457,146173,146889,147605,148320,149036,149752,150468,151184,151900,152616,153332,154048,154764,155480,156196,156912,157628,158344,159060,159776,160492,161208,161924,162640,163356,164072,164788,165504,166220,166936,167652,168368,169084,169800,170516,171232,171948,172664,173380,174096,174812,175528,176244,176960,177676,178392,179108,179824,180540,181256,181972,182688,183404,184120,184836,185552,186268,186984,187700,188416,189132,189847,190563,191279,191995,192711,193427,194143,194859,195575,196291,197007,197723,198439,199155,199871,200587,201303,202019,202735,203451,204167,204883,205599,206315,207031,207747,208463,209179,209895,210436,210977,211518,212059,212600,213140,213681,214222,214763,215304,215845,216386,216927,217468,218009,218549,219090,219631,220172,220713,221254,221795,222336,222877,223418,223959,224499,225040,225581,226122,226663,227204,227745,228286,228827,229368,229909,230449,230990,231531,232072,232613,233154,233695,234236,234777,235318,235858,236399,236940,237481,238022,238563,239104,239645,240186,240727,241268,241808,242349,242890,243431,243972,244513,245054,245595,246136,246677,247218,247758,248299,248840,249381,249922,250463,251004,251545,252086,252627,253167,253708,254249,254790,255331,255872,256242,256612,256849,257085,257322,257559,257795,258032,258269,258505,258742,258979,259215,259452,259689,259925,260162`,s3:`160,360,560,760,960,1267,1600,1933,2400,2899,3399,3898,4520,5142,5764,6386,7007,7629,8251,8873,9495,10183,10870,11558,12245,12933,13620,14308,14995,15683,16371,17058,17746,18433,19121,19808,20496,21183,21871,22558,23246,23934,24621,25309,25996,26684,27371,28059,28746,29434,30140,30845,31551,32257,32962,33668,34374,35079,35785,36491,37196,37902,38608,39313,40019,40725,41430,42136,42842,43547,44253,44959,45664,46370,47076,47781,48487,49193,49898,50604,51310,52015,52721,53427,54132,54838,55544,56249,56955,57661,58366,59072,59777,60483,61189,61894,62600,63306,64011,64717,65423,66128,66834,67540,68245,68951,69657,70362,71068,71774,72479,73185,73891,74596,75302,76008,76713,77419,78125,78830,79536,80242,80947,81653,82359,83064,83770,84476,85181,85887,86588,87288,87989,88689,89390,90091,90791,91492,92192,92893,93594,94294,94995,95696,96396,97097,97797,98498,99199,99899,100600,101300,102001,102702,103402,104103,104803,105504,106205,106905,107606,108307,109007,109708,110408,111109,111810,112510,113211,113911,114612,115313,116013,116714,117414,118115,118816,119516,120217,120918,121618,122319,123019,123720,124421,125121,125822,126522,127223,127924,128624,129325,130025,130726,131427,132127,132828,133528,134229,134930,135630,136331,137032,137732,138433,139133,139834,140535,141235,141936,142636,143337,144038,144738,145439,146139,146840,147541,148241,148942,149643,150343,151044,151744,152445,153146,153846,154547,155247,155948,156649,157349,158050,158750,159451,160152,160852,161553,162254,162954,163655,164355,165056,165757,166457,167158,167858,168559,169260,169960,170661,171361,172062,172763,173463,174164,174864,175565,176266,176966,177667,178368,179068,179769,180469,181170,181871,182571,183272,183972,184673,185374,186074,186775,187475,188176,188877,189577,190278,190979,191679,192380,193080,193781,194482,195182,195883,196583,197284,197985,198685,199386,200086,200787,201488,202188,202889,203590,204290,204991,205691,206392,207093,207793,208494,209194,209895,210441,210987,211533,212079,212625,213171,213717,214263,214809,215355,215901,216447,216992,217538,218084,218630,219176,219722,220268,220814,221360,221906,222452,222998,223544,224090,224636,225182,225728,226820,227366,227912,228458,229004,229550,230096,230642,231187,231733,232279,232825,233371,233917,234463,235009,235555,236101,236647,237193,237739,238285,238831,239377,239923,240469,241015,241561,242107,242653,243199,243745,244291,244836,245382,245928,246474,247020,247566,248112,248658,249204,249750,250296,250842,251388,251809,252230,252651,253072,253493,253914,254335,254756,255177,255598,256019,256440,256861,257282,257703,258124,258545`};
+const CALIB = {};
+for(const k in CALIB_RAW){ CALIB[k] = CALIB_RAW[k].split(',').map(v=>Number(v.trim())); }
+const CALIB_STEP = 10;
+function volumeFromDip(tankKey, mm){
+  const arr = CALIB[tankKey];
+  if(!arr){return 0;}
+  if(mm<=0) return 0;
+  const maxIdx = arr.length-1;
+  const maxMM = (arr.length-1)*CALIB_STEP;
+  if(mm>=maxMM) return arr[maxIdx];
+  const idxFloat = mm/CALIB_STEP;
+  const loIdx = Math.floor(idxFloat);
+  const hiIdx = loIdx+1;
+  if (hiIdx >= arr.length) return arr[maxIdx];
+  const frac = idxFloat-loIdx;
+  const loV=arr[loIdx], hiV=arr[hiIdx];
+  return loV + (hiV-loV)*frac;
+}
+
+/* ----------------------------
+   LOAD / UNLOAD FORMS BUILD
+----------------------------- */
+const TANK_KEYS = ['p1','s1','p2','s2','p3','s3'];
+const TANK_LABELS = { p1:'Tank P1 DIP (mm)', s1:'Tank S1 DIP (mm)', p2:'Tank P2 DIP (mm)', s2:'Tank S2 DIP (mm)', p3:'Tank P3 DIP (mm)', s3:'Tank S3 DIP (mm)' };
+
+function buildForm(containerId, type){
+  const container = document.getElementById(containerId);
+  container.innerHTML='';
+
+  // Fuel Type
+  const fuelTypeRow = document.createElement('div');
+  fuelTypeRow.className = 'form-row';
+  fuelTypeRow.innerHTML = `<label for="${type}_fuel_type">Fuel Type</label>
+    <div class="input-group">
+      <select id="${type}_fuel_type" onchange="updateFormVolumes('${type}')">
+        <option value="HSD">HSD (ডিজেল)</option> <option value="SKO">SKO (কেরোসিন)</option>
+        <option value="PETROL">Petrol (পেট্রোল)</option> <option value="FO">FO (ফার্নেস অয়েল)</option>
+      </select>
+    </div>`;
+  container.appendChild(fuelTypeRow);
+
+  // Tank Dips
+  TANK_KEYS.forEach(tk=>{
+    const row=document.createElement('div');
+    row.className='tank-dip-row';
+    const lab=document.createElement('label');
+    lab.className = 'label'; lab.textContent=TANK_LABELS[tk];
+    const inp=document.createElement('input');
+    inp.type='number'; inp.className='zero'; inp.id=`${type}_${tk}_dip`; inp.value='0';
+    inp.addEventListener('input',()=>updateFormVolumes(type));
+    attachZeroHandlers(inp);
+    const volSpan=document.createElement('span');
+    volSpan.id=`${type}_${tk}_vol`; volSpan.className='small-vol'; volSpan.textContent='0.00 Litre';
+    row.appendChild(lab); row.appendChild(inp); row.appendChild(volSpan);
+    container.appendChild(row);
+  });
+
+  // Temp, Density, etc.
+  const createRow = (label, id, value, step = 'any') => {
+      const row = document.createElement('div');
+      row.className = 'form-row';
+      row.innerHTML = `<label for="${id}">${label}</label>
+      <div class="input-group"><input type="number" class="zero" id="${id}" value="${value}" step="${step}" oninput="updateFormVolumes('${type}')"></div>`;
+      row.querySelector('input').addEventListener('focus', zeroFieldFocus);
+      row.querySelector('input').addEventListener('blur', zeroFieldBlur);
+      return row;
+  };
+
+  container.appendChild(createRow('Present Temperature (°C)', `${type}_pres_temp`, '0'));
+  container.appendChild(createRow('Present Density', `${type}_pres_density`, '0', '0.0001'));
+  if (type === 'unload') {
+    container.appendChild(createRow('Target Temp (°C)', `${type}_targ_temp`, '30'));
+  }
+
+  // Totals
+  const totDiv=document.createElement('div');
+  totDiv.id=`${type}_total_vol`; totDiv.className='total-display'; totDiv.textContent='Total: 0.00 Litre';
+  container.appendChild(totDiv);
+
+  const targTotDiv=document.createElement('div');
+  targTotDiv.id=`${type}_total_vol_target`; targTotDiv.className='total-display'; targTotDiv.textContent='@Target (30°C): 0.00 Litre';
+  container.appendChild(targTotDiv);
+  
+  // Specific fields for Load tab
+  if (type === 'load') {
+    container.appendChild(createRow('Supplied QTY@30', `${type}_supplied_qty`, '0'));
+    container.appendChild(createRow('P-Litre', `${type}_p_litre`, '0'));
+    const diffDiv = document.createElement('div');
+    diffDiv.id = `${type}_different`;
+    diffDiv.className = 'total-display';
+    diffDiv.innerHTML = 'Different: 0.00 L';
+    container.appendChild(diffDiv);
+  }
+
+  // Entry Name and Save
+  const nameRow = document.createElement('div');
+  nameRow.className = 'form-row';
+  nameRow.innerHTML = `<label for="${type}_entry_name">Entry Name</label>
+    <div class="input-group"><input type="text" id="${type}_entry_name" placeholder="Entry name..."></div>`;
+  container.appendChild(nameRow);
+
+  const btn=document.createElement('button');
+  btn.className = 'action-button';
+  btn.textContent='Calculate & Save';
+  btn.addEventListener('click',()=>saveFormEntry(type));
+  container.appendChild(btn);
+  
+  updateFormVolumes(type);
+}
+
+function updateFormVolumes(type){
+  let total=0;
+  TANK_KEYS.forEach(tk=>{
+    const mm=Number(document.getElementById(`${type}_${tk}_dip`).value)||0;
+    const vol=volumeFromDip(tk,mm);
+    total+=vol;
+    document.getElementById(`${type}_${tk}_vol`).textContent=`${formatNumber(vol, 2)} Litre`;
+  });
+  document.getElementById(`${type}_total_vol`).textContent=`Total: ${formatNumber(total,2)} Litre`;
+
+  const pd = Number(document.getElementById(`${type}_pres_density`).value) || 0;
+  const pres_temp = Number(document.getElementById(`${type}_pres_temp`).value) || 0;
+  const targ_temp = (type === 'unload') ? (Number(document.getElementById(`${type}_targ_temp`).value) || 30) : 30;
+  const fuel_type = document.getElementById(`${type}_fuel_type`).value;
+
+  const alpha = getAlpha(fuel_type, pd);
+  let targQty = 0;
+  const targetVolDisplay = document.getElementById(`${type}_total_vol_target`);
+
+  if (total > 0 && alpha !== null && pres_temp > 0 && pd > 0) {
+      const temp_diff = pres_temp - targ_temp;
+      targQty = total - (total * alpha * temp_diff);
+      targetVolDisplay.textContent = `@Target (${targ_temp}°C): ${formatNumber(targQty, 2)} Litre`;
+  } else {
+      targetVolDisplay.textContent = `@Target (${targ_temp}°C): 0.00 Litre`;
+  }
+  
+  if (type === 'load') {
+      const supplied = Number(document.getElementById(`${type}_supplied_qty`).value) || 0;
+      const pLitre = Number(document.getElementById(`${type}_p_litre`).value) || 0;
+      const different = targQty - (supplied + pLitre);
+      document.getElementById(`${type}_different`).textContent = `Different: ${formatNumber(different, 2)} L`;
+  }
+}
+
+
+/* ----------------------------
+   SAVE, HISTORY & COMPARE
+----------------------------- */
+const STORAGE_KEY='tanker_ledger_entries_v1';
+function loadEntries(){ try{ const raw=localStorage.getItem(STORAGE_KEY); return raw?JSON.parse(raw):[]; } catch(e){ return []; } }
+function storeEntries(arr){ localStorage.setItem(STORAGE_KEY,JSON.stringify(arr)); }
+
+function saveFormEntry(type){
+  let total=0;
+  const tanks={};
+  TANK_KEYS.forEach(tk=>{
+    const mm=Number(document.getElementById(`${type}_${tk}_dip`).value)||0;
+    const vol=volumeFromDip(tk,mm);
+    total+=vol;
+    tanks[tk]={mm,vol};
+  });
+  
+  const pres_temp=Number(document.getElementById(`${type}_pres_temp`).value)||0;
+  const pres_density=Number(document.getElementById(`${type}_pres_density`).value)||0;
+  const targ_temp = (type === 'unload') ? (Number(document.getElementById(`${type}_targ_temp`).value) || 30) : 30;
+  const fuel_type = document.getElementById(`${type}_fuel_type`).value;
+
+  const alpha = getAlpha(fuel_type, pres_density);
+  let targQty = 0;
+  if (total > 0 && alpha !== null) {
+      targQty = total - (total * alpha * (pres_temp - targ_temp));
+  }
+
+  const name=(document.getElementById(`${type}_entry_name`).value||'').trim()||`${type.toUpperCase()} ${new Date().toLocaleString()}`;
+  const entry={ id:`${Date.now()}_${Math.random().toString(36).slice(2,8)}`, name, type, time:Date.now(), tanks, fuel_type, pres_temp, pres_density, targ_temp, total_obs:total, total_targ:targQty };
+  
+  // Specific data for load type
+  if (type === 'load') {
+    entry.supplied_qty = Number(document.getElementById(`${type}_supplied_qty`).value) || 0;
+    entry.p_litre = Number(document.getElementById(`${type}_p_litre`).value) || 0;
+  }
+
+  const arr=loadEntries();
+  arr.push(entry);
+  storeEntries(arr);
+  alert('Saved!');
+  document.getElementById(`${type}_entry_name`).value='';
+  renderHistory();
+}
+
+function saveMainTankEntry() {
+    const name = (document.getElementById('main_entry_name').value || '').trim() || `Main Tank ${new Date().toLocaleString()}`;
+    
+    const entryData = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2,8)}`,
+        name: name,
+        type: 'main',
+        time: Date.now(),
+        values: {
+            litrePerMM: document.getElementById('litrePerMM').value,
+            before_oil_water_dip: document.getElementById('before_oil_water_dip').value,
+            before_water_dip: document.getElementById('before_water_dip').value,
+            after_oil_water_dip: document.getElementById('after_oil_water_dip').value,
+            after_water_dip: document.getElementById('after_water_dip').value,
+            main_pres_temp: document.getElementById('main_pres_temp').value,
+            main_pres_density: document.getElementById('main_pres_density').value,
+            supplied_qty_30: document.getElementById('supplied_qty_30').value,
+            p_litre: document.getElementById('p_litre').value,
+            transit_percent: document.getElementById('transit_percent').value
+        }
+    };
+
+    const arr = loadEntries();
+    arr.push(entryData);
+    storeEntries(arr);
+    alert('Main Tank entry saved!');
+    document.getElementById('main_entry_name').value = '';
+    renderHistory();
+}
+
+
+let historyShowAll=false;
+function toggleShowAllHistory(){
+  historyShowAll=!historyShowAll;
+  document.getElementById('historyShowToggleBtn').textContent=historyShowAll?'Show Recent':'Show All';
+  renderHistory();
+}
+function renderHistory(){
+  const listDiv=document.getElementById('historyList');
+  const arr=loadEntries().sort((a,b)=>b.time-a.time);
+  if(!arr.length){
+    listDiv.innerHTML='<p style="text-align:center; color: var(--text-dark);">এখনও কোনো এন্ট্রি সেভ করা হয়নি।</p>';
+    return;
+  }
+  const showArr=historyShowAll?arr:arr.slice(0,10);
+  listDiv.innerHTML='';
+  showArr.forEach(en=>{
+    const row=document.createElement('div'); row.className='history-entry';
+    const d=new Date(en.time);
+    const meta = en.type === 'main' 
+        ? `${en.type.toUpperCase()} | ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`
+        : `${en.type.toUpperCase()} | ${en.fuel_type || 'N/A'} | ${d.toLocaleDateString()} ${d.toLocaleTimeString()}`;
+
+    row.innerHTML = `
+        <input type="checkbox" value="${en.id}" data-type="${en.type}">
+        <div class="entry-details" onclick="loadEntryIntoForm('${en.id}')">
+            <span class="entry-name">${escapeHTML(en.name)}</span>
+            <span class="entry-meta">${meta}</span>
+        </div>`;
+    listDiv.appendChild(row);
+  });
+}
+
+function loadEntryIntoForm(entryId) {
+    const entries = loadEntries();
+    const entry = entries.find(e => e.id === entryId);
+    if (!entry) {
+        alert('Entry not found!');
+        return;
+    }
+
+    if (entry.type === 'load' || entry.type === 'unload') {
+        const type = entry.type;
+        document.getElementById(`${type}_fuel_type`).value = entry.fuel_type || 'HSD';
+        document.getElementById(`${type}_pres_temp`).value = entry.pres_temp || 0;
+        document.getElementById(`${type}_pres_density`).value = entry.pres_density || 0;
+        document.getElementById(`${type}_entry_name`).value = entry.name || '';
+
+        if (type === 'unload') {
+            document.getElementById(`${type}_targ_temp`).value = entry.targ_temp || 30;
+        }
+        if (type === 'load') {
+            document.getElementById(`${type}_supplied_qty`).value = entry.supplied_qty || 0;
+            document.getElementById(`${type}_p_litre`).value = entry.p_litre || 0;
+        }
+
+        TANK_KEYS.forEach(tk => {
+            const dipInput = document.getElementById(`${type}_${tk}_dip`);
+            if (dipInput) {
+                dipInput.value = (entry.tanks && entry.tanks[tk]) ? entry.tanks[tk].mm : 0;
+            }
+        });
+
+        updateFormVolumes(type);
+        showTab(type);
+
+    } else if (entry.type === 'main') {
+        const values = entry.values;
+        if(values) {
+            for(const key in values){
+                const inputEl = document.getElementById(key);
+                if(inputEl) {
+                   inputEl.value = values[key];
+                }
+            }
+        }
+        document.getElementById('main_entry_name').value = entry.name || '';
+        calculateMainTank();
+        showTab('main');
+    }
+}
+
+
+function getSelectedEntryIds(){ return Array.from(document.querySelectorAll('#historyList input:checked')).map(cb=>cb.value); }
+
+function compareSelected(){
+  const ids=getSelectedEntryIds();
+  if(ids.length!==2){ alert('দুইটি এন্ট্রি সিলেক্ট করুন।'); return; }
+  const arr=loadEntries();
+  const en1=arr.find(e=>e.id===ids[0]);
+  const en2=arr.find(e=>e.id===ids[1]);
+  if(!en1||!en2){ alert('নির্বাচিত ডেটা পাওয়া যায়নি'); return; }
+
+  if(en1.type === 'main' || en2.type === 'main') {
+      alert('তুলনা শুধুমাত্র Load এবং Unload এন্ট্রির জন্য প্রযোজ্য।');
+      return;
+  }
+  
+  let load=en1.type === 'load' ? en1 : en2;
+  let unload=en1.type === 'unload' ? en1 : en2;
+  if(load.type === unload.type) {
+      alert('একটি Load এবং একটি Unload এন্ট্রি সিলেক্ট করুন।');
+      return;
+  }
+  
+  const obsDiff=(unload.total_obs||0)-(load.total_obs||0);
+  const targDiff=(unload.total_targ||0)-(load.total_targ||0);
+  const targetTemp = load.targ_temp || 30;
+
+  const resultEl = document.getElementById('historyComparisonResult');
+  resultEl.innerHTML=`
+    <div style="background-color: var(--bg-dark); padding: 15px; border-radius: var(--radius);">
+      <h3 style="text-align:center; margin-top:0;">Comparison</h3>
+      <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+        <thead>
+            <tr>
+                <th style="padding:8px; border: 1px solid var(--bg-light); text-align:left;">Metric</th>
+                <th style="padding:8px; border: 1px solid var(--bg-light);">${escapeHTML(load.name)}</th>
+                <th style="padding:8px; border: 1px solid var(--bg-light);">${escapeHTML(unload.name)}</th>
+                <th style="padding:8px; border: 1px solid var(--bg-light);">Difference</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="padding:8px; border: 1px solid var(--bg-light); text-align:left;">Observed Qty</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light);">${formatNumber(load.total_obs,2)} L</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light);">${formatNumber(unload.total_obs,2)} L</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light); color: ${obsDiff > 0 ? 'var(--accent-green-light)' : 'var(--accent-red)'};">${formatNumber(obsDiff,2,true)} L</td>
+            </tr>
+            <tr>
+                <td style="padding:8px; border: 1px solid var(--bg-light); text-align:left;">Qty @${targetTemp}°C</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light);">${formatNumber(load.total_targ,2)} L</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light);">${formatNumber(unload.total_targ,2)} L</td>
+                <td style="padding:8px; border: 1px solid var(--bg-light); color: ${targDiff > 0 ? 'var(--accent-green-light)' : 'var(--accent-red)'};">${formatNumber(targDiff,2,true)} L</td>
+            </tr>
+        </tbody>
+      </table>
+      <p style="font-size: 12px; text-align: center; color: var(--text-dark); margin-top: 10px;">Positive (+) মানে আনলোড বেশি, Negative (-) মানে আনলোড কম।</p>
+    </div>
+  `;
+}
+
+function deleteSelected(){
+  const ids=getSelectedEntryIds();
+  if(!ids.length){ alert('কোনো এন্ট্রি সিলেক্ট হয়নি।'); return; }
+  if(!confirm('নির্বাচিত এন্ট্রি মুছে ফেলতে চান?')) return;
+  let arr=loadEntries();
+  arr=arr.filter(e=>!ids.includes(e.id));
+  storeEntries(arr);
+  renderHistory();
+  document.getElementById('historyComparisonResult').innerHTML='';
+}
+
+/* EXPORT / IMPORT */
+function exportHistory(){
+  const arr=loadEntries();
+  if(!arr.length){ alert('কোনো হিস্ট্রি নেই এক্সপোর্ট করার জন্য।'); return; }
+  const blob=new Blob([JSON.stringify(arr,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`tanker-ledger-history-${new Date().toISOString().slice(0,10)}.json`; a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function importHistoryFile(ev){
+  const file=ev.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=function(){
+    try{
+      const data=JSON.parse(reader.result);
+      if(Array.isArray(data) && confirm('বর্তমান সকল হিস্ট্রি মুছে নতুন ডেটা ইম্পোর্ট করতে চান?')){
+          storeEntries(data);
+          alert('Import সম্পন্ন!');
+          renderHistory();
+          showTab('history');
+      }else{ alert('ফাইল ফরম্যাট ভুল।'); }
+    }catch(err){ alert('ইমপোর্ট ব্যর্থ।'); }
+  };
+  reader.readAsText(file);
+}
+
+/* -------------------------------------
+   MAIN TANK CALC
+-------------------------------------- */
+function calculateMainTank(){
+  const lpm = Number(document.getElementById('litrePerMM').value)||0;
+  const bef_o_w = Number(document.getElementById('before_oil_water_dip').value)||0;
+  const bef_w = Number(document.getElementById('before_water_dip').value)||0;
+  const aft_o_w = Number(document.getElementById('after_oil_water_dip').value)||0;
+  const aft_w = Number(document.getElementById('after_water_dip').value)||0;
+
+  const pres_temp = Number(document.getElementById('main_pres_temp').value)||0;
+  const pres_density = Number(document.getElementById('main_pres_density').value)||0;
+  // Use HSD as default for alpha calculation in main tank for simplicity, as there's no selector
+  const alpha = getAlpha('HSD', pres_density); 
+
+  const oil_l_before = Math.max(bef_o_w - bef_w, 0) * lpm;
+  const oil_l_after = Math.max(aft_o_w - aft_w, 0) * lpm;
+  
+  const received_qty = oil_l_after - oil_l_before; // Unloading means after > before
+
+  let received_qty_30 = received_qty;
+  if(alpha !== null && received_qty > 0 && pres_temp > 0) {
+      const temp_diff = pres_temp - 30;
+      received_qty_30 = received_qty - (received_qty * alpha * temp_diff);
+  }
+
+  document.getElementById('received_qty').textContent = formatNumber(received_qty, 2, true) + ' L';
+  document.getElementById('received_qty_30').textContent = formatNumber(received_qty_30, 2, true) + ' L';
+  
+  const supplied_qty = Number(document.getElementById('supplied_qty_30').value) || 0;
+  const p_litre = Number(document.getElementById('p_litre').value) || 0;
+  const total_supplied = supplied_qty + p_litre;
+
+  const surplus = received_qty_30 - total_supplied;
+  document.getElementById('surplus_qty').textContent = formatNumber(surplus, 2, true) + ' L';
+  
+  const transit_percent = Number(document.getElementById('transit_percent').value) || 0;
+  const allowable = supplied_qty * (transit_percent / 100);
+  document.getElementById('allowable_qty').textContent = formatNumber(allowable, 2);
+
+  const net_surplus = surplus + allowable;
+  document.getElementById('net_surplus_qty').textContent = formatNumber(net_surplus, 2, true) + ' L';
+}
+
+
+/* ----------------------------
+   TAB SWITCHING & HELPERS
+----------------------------- */
+function showTab(which){
+  ['load','unload','history','main'].forEach(id=>{
+    document.getElementById(`tab-${id}`).classList.toggle('hidden',id!==which);
+    document.getElementById(`tab-${id}-btn`).classList.toggle('active',id===which);
+  });
+  if(which==='history') renderHistory();
+  if(which==='main') calculateMainTank();
+}
+function formatNumber(n, dec=0, showSign=false){
+  if(!isFinite(n)) n=0;
+  const sign = showSign ? (n >= 0 ? '+' : '−') : '';
+  const val = Math.abs(n);
+  const nf = Intl.NumberFormat('en-US',{minimumFractionDigits:dec, maximumFractionDigits:dec});
+  return `${sign}${nf.format(val)}`;
+}
+function escapeHTML(str){return (str||'').replace(/[&<>"]/g,s=>({'&':'&','<':'<','>':'>','"':'"'}[s]));}
+
+/* ----------------------------
+   INIT
+----------------------------- */
+document.addEventListener('DOMContentLoaded',()=>{
+  buildForm('loadForm','load');
+  buildForm('unloadForm','unload');
+  document.querySelectorAll('#tab-main input').forEach(attachZeroHandlers);
+  renderHistory();
+  calculateMainTank();
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('./sw.js').catch(err => console.error('Service Worker registration failed:', err));
+  }
+});
+
+</script>
+</body>
+</html>
