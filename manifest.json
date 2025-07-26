@@ -17,5 +17,7 @@
       "type": "image/png",
       "sizes": "512x512"
     }
-  ]
+  ],
+  "description": "tanker letger is a ship carrying oil calculator",
+  "id": "tankerletger"
 }
